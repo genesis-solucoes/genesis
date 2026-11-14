@@ -2,7 +2,7 @@
 
 Node.js, Express, TypeScript e PostgreSQL (driver `pg`, sem ORM), organizada em Clean Architecture.
 Pensada para rodar com um Postgres gerenciado pela [Neon](https://neon.tech), hospedada na Vercel
-como função serverless (ver `api/index.ts` e `vercel.json`).
+via o deploy zero-config de Express (ver `src/index.ts`).
 
 ## Estrutura
 
@@ -19,13 +19,12 @@ src/
   routes/        public, admin e index
   shared/        AppError, paginação, respostas, validação comum
   container.ts   composição das dependências
-  app.ts         configuração do Express
+  app.ts         configuração do Express (factory `createApp`)
   server.ts      bootstrap e shutdown gracioso (uso local/servidor tradicional)
+  index.ts       entrypoint do deploy zero-config na Vercel (exporta o app, sem `.listen`)
   scripts/       create-admin, migrate
 sql/
   schema.sql     schema idempotente (tabelas, tipos enum, índices)
-api/
-  index.ts       entrypoint serverless usado pela Vercel
 ```
 
 ## Como rodar
@@ -46,11 +45,11 @@ Produção (servidor tradicional): `npm run build && npm start`.
    **pooled** (contém `-pooler` no host) — ela é a indicada para ambiente serverless.
 2. Rode `npm run migrate` uma vez com `DATABASE_URL` apontando para esse banco (local
    ou via `vercel env pull`), e depois `npm run create-admin -- ...` para criar o primeiro usuário.
-3. Importe este diretório (`backend/genesis-api`) como um projeto na Vercel.
+3. Importe este diretório (`backend/genesis-api`) como um projeto na Vercel (Root Directory =
+   `backend/genesis-api`, Framework Preset = Other; não precisa de Build Command nem
+   Output Directory — a Vercel detecta `src/index.ts` e roda o Express zero-config).
 4. Configure as env vars do projeto na Vercel: `DATABASE_URL`, `JWT_SECRET`, `PUBLIC_API_KEY`,
    `CORS_ORIGINS` (domínios do frontend/admin na Vercel), `NODE_ENV=production`.
-5. `vercel.json` já redireciona todas as rotas para `api/index.ts`, que reaproveita o mesmo
-   Express app (`src/app.ts`) como uma função serverless.
 
 ## Endpoints (`/api/v1`)
 
