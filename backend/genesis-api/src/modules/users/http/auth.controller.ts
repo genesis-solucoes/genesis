@@ -12,7 +12,10 @@ export class AuthController {
     const { email, password } = loginSchema.parse(req.body);
     const { token, user } = await this.service.login(email, password);
     res.cookie(AUTH_COOKIE, token, authCookieOptions);
-    sendOk(res, { user });
+    // O cookie é HttpOnly (funciona quando front e API ficam no mesmo site);
+    // o token também vai no corpo para SPAs em domínios cross-site, onde o
+    // navegador pode recusar o cookie — nesse caso o front usa Authorization: Bearer.
+    sendOk(res, { user, token });
   };
 
   logout = async (_req: Request, res: Response): Promise<void> => {

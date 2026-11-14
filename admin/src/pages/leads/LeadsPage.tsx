@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import axios from 'axios';
 import { ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { StatusBadge, STATUS_LABEL } from '../../components/ui/StatusBadge';
 import { useToast } from '../../contexts/ToastContext';
@@ -34,7 +35,9 @@ export const LeadsPage = () => {
       const result = await quotesService.list(status, page);
       if (id === requestId.current) setData(result);
     } catch (error) {
-      if (id === requestId.current) toast.error(getErrorMessage(error));
+      // Sessão expirada/sem token já tem aviso próprio no interceptor global de 401.
+      const isSessionExpired = axios.isAxiosError(error) && error.response?.status === 401;
+      if (id === requestId.current && !isSessionExpired) toast.error(getErrorMessage(error));
     } finally {
       if (id === requestId.current) setLoading(false);
     }
@@ -44,7 +47,8 @@ export const LeadsPage = () => {
     try {
       setMetrics(await quotesService.metrics());
     } catch (error) {
-      toast.error(getErrorMessage(error));
+      const isSessionExpired = axios.isAxiosError(error) && error.response?.status === 401;
+      if (!isSessionExpired) toast.error(getErrorMessage(error));
     }
   }, [toast]);
 
