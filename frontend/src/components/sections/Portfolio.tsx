@@ -26,24 +26,43 @@ export default function Portfolio() {
         {!loading && !error && projects.length === 0 && <p className="text-center text-gray-500">Nenhum projeto disponível no momento.</p>}
         {!loading && !error && projects.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => (
-              <article key={project.id} className="bg-genesis-surface/55 border border-white/10 rounded-[24px] p-4 flex flex-col gap-3 hover:border-genesis-accent/50 transition-colors">
-                <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-gradient-to-br from-genesis-surface to-genesis-petro flex items-center justify-center">
-                  <span className="font-heading font-black text-[13px] uppercase text-genesis-accent px-3 text-center">{project.category}</span>
+            {projects.map((project) => {
+              const Card = (
+                <article className="h-full bg-genesis-surface/55 border border-white/10 rounded-[24px] p-4 flex flex-col gap-3 transition-colors group-hover:border-genesis-accent/50">
+                  <div className="relative aspect-[16/10] rounded-2xl overflow-hidden bg-gradient-to-br from-genesis-surface to-genesis-petro flex items-center justify-center">
+                    <span className="font-heading font-black text-[13px] uppercase text-genesis-accent px-3 text-center">{project.category}</span>
+                  </div>
+                  <div className="px-1.5 flex flex-col flex-grow gap-2">
+                    <h3 className="text-[1.02rem] uppercase font-extrabold leading-tight text-white">{project.title}</h3>
+                    <p className="text-gray-400 text-[14.5px] line-clamp-3">{project.description}</p>
+                    {project.tags.length > 0 && (
+                      <ul className="mt-auto flex flex-wrap gap-2 pt-1">
+                        {project.tags.slice(0, 4).map((tag) => (
+                          <li key={tag} className="text-[12px] font-semibold text-genesis-accentHover border border-white/10 rounded-full px-2.5 py-1 bg-black/40">{tag}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </article>
+              );
+
+              return project.demoUrl ? (
+                <a
+                  key={project.id}
+                  href={project.demoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group block h-full rounded-[24px] focus-visible:outline focus-visible:outline-2 focus-visible:outline-genesis-accent"
+                  aria-label={`Abrir ${project.title} em uma nova aba`}
+                >
+                  {Card}
+                </a>
+              ) : (
+                <div key={project.id} className="h-full">
+                  {Card}
                 </div>
-                <div className="px-1.5 flex flex-col flex-grow gap-2">
-                  <h3 className="text-[1.02rem] uppercase font-extrabold leading-tight text-white">{project.title}</h3>
-                  <p className="text-gray-400 text-[14.5px] line-clamp-3">{project.description}</p>
-                  {project.tags.length > 0 && (
-                    <ul className="mt-auto flex flex-wrap gap-2 pt-1">
-                      {project.tags.slice(0, 4).map((tag) => (
-                        <li key={tag} className="text-[12px] font-semibold text-genesis-accentHover border border-white/10 rounded-full px-2.5 py-1 bg-black/40">{tag}</li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              </article>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
