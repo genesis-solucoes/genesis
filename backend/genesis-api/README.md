@@ -2,7 +2,7 @@
 
 Node.js, Express, TypeScript e PostgreSQL (driver `pg`, sem ORM), organizada em Clean Architecture.
 Pensada para rodar com um Postgres gerenciado pela [Neon](https://neon.tech), hospedada na Vercel
-via o deploy zero-config de Express (ver `src/index.ts`).
+como função serverless via `api/index.ts` + `vercel.json` (ver nota abaixo sobre o Framework Preset).
 
 ## Estrutura
 
@@ -21,10 +21,11 @@ src/
   container.ts   composição das dependências
   app.ts         configuração do Express (factory `createApp`)
   server.ts      bootstrap e shutdown gracioso (uso local/servidor tradicional)
-  index.ts       entrypoint do deploy zero-config na Vercel (exporta o app, sem `.listen`)
   scripts/       create-admin, migrate
 sql/
   schema.sql     schema idempotente (tabelas, tipos enum, índices)
+api/
+  index.ts       entrypoint serverless usado pela Vercel (reaproveita `createApp`)
 ```
 
 ## Como rodar
@@ -46,8 +47,13 @@ Produção (servidor tradicional): `npm run build && npm start`.
 2. Rode `npm run migrate` uma vez com `DATABASE_URL` apontando para esse banco (local
    ou via `vercel env pull`), e depois `npm run create-admin -- ...` para criar o primeiro usuário.
 3. Importe este diretório (`backend/genesis-api`) como um projeto na Vercel (Root Directory =
-   `backend/genesis-api`, Framework Preset = Other; não precisa de Build Command nem
-   Output Directory — a Vercel detecta `src/index.ts` e roda o Express zero-config).
+   `backend/genesis-api`). **Importante:** em Settings → General → Framework Preset, confirme
+   que está em **Other** — a Vercel tende a auto-selecionar "Express" por achar a dependência
+   no `package.json`, mas o preset "Express" (detecção zero-config) tem um bug conhecido em
+   monorepos com Root Directory apontando para uma subpasta (quebra o build com
+   `Cannot read properties of undefined (reading 'fsPath')`). Com "Other", a Vercel ainda
+   detecta `api/index.ts` normalmente (convenção independente de framework) e não precisa de
+   Build Command nem Output Directory.
 4. Configure as env vars do projeto na Vercel: `DATABASE_URL`, `JWT_SECRET`, `PUBLIC_API_KEY`,
    `CORS_ORIGINS` (domínios do frontend/admin na Vercel), `NODE_ENV=production`.
 
